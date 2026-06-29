@@ -1,217 +1,114 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <locale.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-#define MaxTam 100
+typedef struct No
+{
+    int valor;
+    struct No *prox;
+} No;
 
 typedef struct
 {
-    int item[MaxTam];
-    int inicio;
-    int fim;
-} TipoLista;
+    No *inicio;
+} Lista;
 
-int menu()
+void inicializar(Lista *lista)
 {
-    int A = 0;
-
-    printf("\n========== MENU ==========\n");
-    printf("1 - Inserir dado\n");
-    printf("2 - Remover dado\n");
-    printf("3 - Exibir maior e menor valor\n");
-    printf("4 - Exibir dados na ordem de entrada\n");
-    printf("5 - Exibir endereço de memória dos valores da lista\n");
-    printf("0 - Sair\n");
-    printf("==========================\n");
-    printf("Qual opção você deseja? ");
-    scanf("%d", &A);
-
-    return A;
+    lista->inicio = NULL;
 }
 
-void adicionar(TipoLista *Lista)
+void inserir_inicio(Lista *lista, int valor)
 {
-    if (Lista->fim == MaxTam)
+    No *novo = malloc(sizeof(No));
+
+    if (novo == NULL)
     {
-        printf("A lista está cheia.\n");
+        printf("Erro ao alocar memória.\n");
+        return;
+    }
+
+    novo->valor = valor;
+    novo->prox = lista->inicio;
+    lista->inicio = novo;
+}
+
+void remover_valor(Lista *lista, int valor)
+{
+    No *atual = lista->inicio;
+    No *anterior = NULL;
+
+    while (atual != NULL && atual->valor != valor)
+    {
+        anterior = atual;
+        atual = atual->prox;
+    }
+
+    if (atual == NULL)
+    {
+        printf("Valor não encontrado.\n");
+        return;
+    }
+
+    if (anterior == NULL)
+    {
+        lista->inicio = atual->prox;
     }
     else
     {
-        printf("Qual valor você deseja adicionar à lista? ");
-        scanf("%d", &Lista->item[Lista->fim]);
-
-        Lista->fim++;
-
-        printf("Valor adicionado com sucesso.\n");
+        anterior->prox = atual->prox;
     }
+
+    free(atual);
+    printf("Valor removido com sucesso.\n");
 }
 
-void remover(TipoLista *Lista)
+void exibir(Lista *lista)
 {
-    int A = 0, B = -1;
+    No *atual = lista->inicio;
 
-    if (Lista->inicio == Lista->fim)
+    printf("Lista: ");
+
+    while (atual != NULL)
     {
-        printf("A lista está vazia.\n");
+        printf("%d ", atual->valor);
+        atual = atual->prox;
     }
-    else
-    {
-        printf("Qual valor você deseja remover? ");
-        scanf("%d", &A);
 
-        for (int j = Lista->inicio; j < Lista->fim; j++)
-        {
-            if (Lista->item[j] == A)
-            {
-                B = j;
-                break;
-            }
-        }
-
-        if (B == -1)
-        {
-            printf("Valor não encontrado.\n");
-        }
-        else
-        {
-            for (int i = B; i < Lista->fim - 1; i++)
-            {
-                Lista->item[i] = Lista->item[i + 1];
-            }
-
-            Lista->fim--;
-
-            printf("Valor removido com sucesso.\n");
-        }
-    }
+    printf("\n");
 }
 
-void maior_menor(TipoLista *Lista)
+void liberar(Lista *lista)
 {
-    int menor = 0, maior = 0;
+    No *atual = lista->inicio;
+    No *proximo;
 
-    if (Lista->inicio == Lista->fim)
+    while (atual != NULL)
     {
-        printf("A lista está vazia.\n");
+        proximo = atual->prox;
+        free(atual);
+        atual = proximo;
     }
-    else
-    {
-        maior = Lista->item[Lista->inicio];
-        menor = Lista->item[Lista->inicio];
 
-        for (int i = Lista->inicio + 1; i < Lista->fim; i++)
-        {
-            if (Lista->item[i] > maior)
-            {
-                maior = Lista->item[i];
-            }
-
-            if (Lista->item[i] < menor)
-            {
-                menor = Lista->item[i];
-            }
-        }
-
-        printf("O maior valor é: %d\n", maior);
-        printf("O menor valor é: %d\n", menor);
-    }
-}
-
-void exibir(TipoLista *Lista)
-{
-    if (Lista->inicio == Lista->fim)
-    {
-        printf("A lista está vazia.\n");
-    }
-    else
-    {
-        printf("Valores da lista: ");
-
-        for (int i = Lista->inicio; i < Lista->fim; i++)
-        {
-            printf("%d ", Lista->item[i]);
-        }
-
-        printf("\n");
-    }
-}
-
-void exibir_endereco_memoria(TipoLista *Lista)
-{
-    if (Lista->inicio == Lista->fim)
-    {
-        printf("A lista está vazia.\n");
-    }
-    else
-    {
-        printf("Endereços de memória dos valores da lista:\n");
-
-        for (int i = Lista->inicio; i < Lista->fim; i++)
-        {
-            printf("Valor %d está no endereço %p\n", Lista->item[i], (void *)&Lista->item[i]);
-        }
-    }
+    lista->inicio = NULL;
 }
 
 int main()
 {
-    setlocale(LC_ALL, "Portuguese_Brazil.utf8");
+    Lista lista;
 
-#ifdef _WIN32
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
-#endif
+    inicializar(&lista);
 
-    TipoLista Lista;
+    inserir_inicio(&lista, 30);
+    inserir_inicio(&lista, 20);
+    inserir_inicio(&lista, 10);
 
-    Lista.inicio = 0;
-    Lista.fim = 0;
+    exibir(&lista);
 
-    int Menu = 0;
+    remover_valor(&lista, 20);
 
-    do
-    {
-        Menu = menu();
+    exibir(&lista);
 
-        switch (Menu)
-        {
-        case 1:
-            adicionar(&Lista);
-            break;
-
-        case 2:
-            remover(&Lista);
-            break;
-
-        case 3:
-            maior_menor(&Lista);
-            break;
-
-        case 4:
-            exibir(&Lista);
-            break;
-
-        case 5:
-            exibir_endereco_memoria(&Lista);
-            break;
-
-        case 0:
-            printf("Encerrando...\n");
-            break;
-
-        default:
-            printf("Opção inválida.\n");
-            break;
-        }
-
-        system("pause");
-        system("cls");
-
-    } while (Menu != 0);
+    liberar(&lista);
 
     return 0;
 }
